@@ -335,17 +335,17 @@ class rough{
         // System.out.println("\n-------\n");
         // System.out.println(maximum(root));
         // prepost(root);
-        // LVT(root);
-        // LVTZZ(root);
+          LVT(root);
+          LVTZZ(root);
         // mirror(root);
         // deletenode(root);
         // Linearize(root);
         // Node ans=Linearize2(root);
         // System.out.println(findElement(root,400));
         // ArrayList<Integer>ans= findPath(root,60);
-        // for(int i:ans){
-        //     System.out.print(i+" ");
-        // }
+        for(int i:ans){
+            System.out.print(i+" ");
+        }
         // System.out.println(lca(root,60,50));
         // System.out.print(distancebetweenNodes(root,60,50));
         // multitraversal(root,0);
