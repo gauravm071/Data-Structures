@@ -1,0 +1,381 @@
+import java.util.*;
+public class Graph {
+    static class Edge{
+        int v1;
+        int v2;
+        int weight;
+        Edge(int v1, int v2, int weight){
+            this.v1=v1;
+            this.v2=v2;
+            this.weight=weight;
+        }
+        
+    }
+
+    static class BFSPair{
+        int vtx;
+        String psf;
+        BFSPair(int vtx, String psf){
+            this.vtx= vtx;
+            this.psf= psf;
+        }
+    }
+
+    public static boolean hasPath(int src, int dst, ArrayList<Edge>[]graph, boolean []visited){
+        if(src==dst) return true;
+        visited[src]=true;
+        for(int i=0;i<graph[src].size();i++){
+            int nbr= graph[src].get(i).v2;
+            if(visited[nbr]==false){
+                boolean res=hasPath(nbr, dst, graph, visited);
+                if(res) return true;
+            }
+        }
+        return false;
+    }
+
+    public static void addEdge(int v1, int v2, int weight, ArrayList<Edge>[]graph){
+        graph[v1].add(new Edge(v1, v2, weight));
+        // graph[v2].add(new Edge(v2, v1, weight));
+    }
+
+    public static void display(ArrayList<Edge>[]graph){
+        for(int i=0;i<graph.length;i++){
+            System.out.print(i+"-> ");
+            ArrayList<Edge> mArrayList= graph[i];
+            for(int j=0;j<mArrayList.size();j++){
+                Edge edge=mArrayList.get(j);
+                System.out.print(edge.v1+"->"+edge.v2+" ("+edge.weight+"), ");
+            }
+            System.out.println();
+        }
+    }
+
+    public static ArrayList<Integer> allPaths(int src, int dst, ArrayList<Edge>[]graph, boolean[]visited){
+        if(src==dst) {
+            ArrayList<Integer> bres= new ArrayList<>();
+            bres.add(dst);
+            return bres;
+        }
+        ArrayList<Integer> mans= new ArrayList<>();
+        for(int i=0;i<graph[src].size();i++){
+            int nbr= graph[src].get(i).v2;
+            if(visited[nbr]==false){
+                visited[nbr]=true;
+               mans= allPaths(nbr, dst, graph, visited);
+               mans.add(src);
+               visited[nbr]=false;
+            }
+        }
+        return mans;
+    }
+    public static ArrayList<Integer> getComponent(int src, ArrayList<Edge>[]graph, boolean[]visited){
+        visited[src]=true;
+        ArrayList<Integer> list= new ArrayList<>();
+        list.add(src);
+        for(int i=0;i<graph[src].size();i++){
+            int nbr= graph[src].get(i).v2;
+            if(visited[nbr]==false){
+               ArrayList<Integer> rres= getComponent(nbr, graph, visited);
+                list.addAll(rres);
+            }
+        }
+        return list;
+    }
+
+    public static ArrayList<ArrayList<Integer>> getConnectedComponents(ArrayList<Edge>[]graph, int n, boolean[]visited){
+
+        ArrayList<ArrayList<Integer>> ans= new ArrayList<>();
+        for(int v=0;v<n;v++){
+            if(visited[v]==false){
+                ArrayList<Integer> recans=getComponent(v, graph,visited);
+                ans.add(recans);
+            }
+        }
+        return ans;
+    }
+
+    static class Bpair{
+        int vtx;
+        int level;
+        Bpair(int vtx, int level){
+            this.vtx= vtx;
+            this.level= level;
+        }
+    }
+
+    public static boolean isBipartiteComp(ArrayList<Edge>[]graph, int []visited, int v){
+        Queue<Bpair> qu= new LinkedList<>();
+        qu.add(new Bpair(v,0));
+        while(!qu.isEmpty()){
+            Bpair pair= qu.remove();
+            if(visited[pair.vtx]!=-1){
+                if(visited[pair.vtx]==pair.level) continue;
+                else return false;
+            }
+
+            visited[pair.vtx]=pair.level;
+
+            for(int i=0;i<graph[v].size();i++){
+                int nbr=graph[v].get(i).v2;
+                if(visited[nbr]==-1){
+                    qu.add(new Bpair(nbr, pair.level+1));
+                }
+            }
+        }
+        return true;
+    }
+    
+    public static boolean isBipartite(ArrayList<Edge>[]graph){
+        int []visited= new int[graph.length];
+        for(int v=0;v<graph.length;v++){
+            if(visited[v]==-1){
+                return isBipartiteComp(graph, visited, v);
+            }
+        }
+        return true;
+    }
+
+
+    public static void hamiltonianPathOrCycle(ArrayList<Edge>[]graph, int src, int osrc, HashSet<Integer> set, String path){
+        // System.out.println(path);
+        if(set.size()==graph.length-1){
+            path+=src;
+            boolean flag=false;
+            for(int i=0;i<graph[osrc].size();i++){
+                if(graph[osrc].get(i).v2==src){
+                    flag=true;
+                    break;
+                }
+            }
+            if(flag){
+                System.out.println(path+"*");
+            }
+           else  System.out.println(path+".");
+        }
+        set.add(src);
+        for(int i=0;i<graph[src].size();i++){
+            int nbr= graph[src].get(i).v2;
+            if(!set.contains(nbr)){
+                hamiltonianPathOrCycle(graph, nbr, osrc, set, path+src);
+            }
+        }
+        set.remove(src);
+    }
+
+    public static void  BFS(ArrayList<Edge> []graph, int src){
+        Queue<BFSPair> qu= new LinkedList<>();
+        qu.add(new  BFSPair(src, ""));
+        boolean[]visited= new boolean[graph.length];
+        while(qu.size()>0){
+            BFSPair pair= qu.remove();
+            if(visited[pair.vtx]==false){
+                visited[pair.vtx]=true;
+            }
+            else continue;
+            System.out.println(pair.vtx +" @ "+ pair.psf+ pair.vtx);
+
+            for(int i=0;i<graph[pair.vtx].size();i++){
+                int nbr= graph[pair.vtx].get(i).v2;
+                if(visited[nbr]==false){
+                    qu.add(new BFSPair(nbr, pair.psf+pair.vtx));
+                }
+            }
+        }
+    }
+
+    static class DPair implements Comparable<DPair>{
+        int vtx;
+        int wt;
+        String psf;
+        DPair(int vtx, int wt, String psf){
+            this.vtx= vtx;
+            this.wt= wt;
+            this.psf= psf;
+        }
+        public int compareTo(DPair o){
+            return this.wt-o.wt;
+        }
+    }
+
+    public static void shortestPathInWeight(ArrayList<Edge>[]graph, int src){
+        PriorityQueue<DPair> qu= new PriorityQueue();
+        qu.add(new DPair(src, 0, ""+src));
+        boolean[] visited= new boolean[graph.length];
+        while(!qu.isEmpty()){
+            DPair pair= qu.remove();
+            if(visited[pair.vtx]==true){
+                continue;
+            }
+            visited[pair.vtx]=true;
+            System.out.println(pair.vtx +" via "+pair.psf+ " @ "+pair.wt);
+
+            for(int i=0;i<graph[pair.vtx].size();i++){
+                int nbr= graph[pair.vtx].get(i).v2;
+                if(visited[nbr]==false){
+                    qu.add(new DPair(nbr, pair.wt+graph[pair.vtx].get(i).weight, pair.psf+nbr));
+                }
+            }
+        }
+    }
+
+    static class PrmsPair implements Comparable<PrmsPair>{
+        int vtx;
+        int wt;
+        int prnt;
+        PrmsPair(int vtx, int wt, int prnt){
+            this.vtx= vtx;
+            this.wt= wt;
+            this.prnt=prnt;
+        }
+        public int compareTo(PrmsPair o){
+            return this.wt- o.wt;
+        }
+    }
+
+    public static void Prims(ArrayList<Edge> []graph, int src){
+        PriorityQueue<PrmsPair> qu= new PriorityQueue<>();
+        qu.add(new PrmsPair(src, 0, -1));
+        boolean []visited= new boolean[graph.length];
+        ArrayList<Edge> []ans= new ArrayList[graph.length];
+        for(int i=0;i<graph.length;i++) ans[i]= new ArrayList<>();
+        while(qu.size()>0){
+            PrmsPair pair= qu.remove();
+            if(visited[pair.vtx]==true){
+                continue;
+            }
+            visited[pair.vtx]=true;
+            if(pair.prnt!=-1)addEdge(pair.vtx, pair.prnt, pair.wt, ans);
+            for(int i=0;i<graph[pair.vtx].size();i++){
+                int nbr=graph[pair.vtx].get(i).v2;
+                if(visited[nbr]==false){
+                    qu.add(new PrmsPair(nbr, graph[pair.vtx].get(i).weight, pair.vtx));
+                }
+            }
+        }
+        display(ans);
+    }
+
+    public static boolean checkIfCyclic(ArrayList<Edge>[]graph, int src, boolean[]visited, boolean []myPath){
+
+        visited[src]=true;
+        myPath[src]=true;
+        for(Edge e: graph[src]){
+            if(myPath[e.v2]==true) return true;
+            else if(visited[e.v2]==false){
+                return checkIfCyclic(graph, e.v2, visited, myPath);
+            }
+        }
+        myPath[src]=false;
+        return false;
+    }
+
+    public static int isCyclic(ArrayList<Edge>[]graph){
+        boolean[] visited= new boolean[graph.length];
+        boolean []myPath= new boolean[graph.length];
+        int count=0;
+        for(int i=0;i<graph.length;i++){
+                if(visited[i]==false){
+                    boolean ans=checkIfCyclic(graph,i,visited, myPath);
+                    if(ans) {
+                        return 1;
+                    }
+                }
+            }
+            return 0;
+    }
+
+    static class OPair{
+        int x;
+        int y;
+        int t;
+        OPair(int x, int y, int t){
+            this.x=x;
+            this.y=y;
+            this.t=t;
+        }
+    }
+
+    public static void redOranges(int [][]arr){
+        Queue<OPair> qu= new LinkedList<>();
+        int oranges=0;
+        for(int i=0;i<arr.length;i++){
+            for(int j=0;j<arr[i].length;j++){
+                if(arr[i][j]==2){
+                    oranges++;
+                    qu.add(new OPair(i, j, 0));
+                }
+                else if(arr[i][j]==1){
+                    oranges++;
+                }
+            }
+        }
+        int time=0;
+        int []xdir={-1,0,1,0};
+        int []ydir={0,-1,0,1};
+        while(qu.size()>0){
+            int size=qu.size();
+            while(size-->0){
+                OPair pair= qu.remove();
+                if(arr[pair.x][pair.y]==-1){
+                    continue;
+                }
+                arr[pair.x][pair.y]=-1;
+                time= pair.t;
+                oranges--;
+                System.out.println("orange at "+ pair.x +", "+ pair.y +" rotten at "+ pair.t);
+
+                for(int i=0;i<4;i++){
+                    int r= pair.x+xdir[i];
+                    int c= pair.y+ydir[i];
+                    if(r>=0 && r<arr.length && c>=0 && c<arr[0].length && arr[r][c]==1){
+                        qu.add(new OPair(r, c, pair.t+1));
+                    }
+                }
+                
+            }
+        }
+        System.out.println(time +" "+ oranges);
+    }      
+
+    public static void main(String[] args) {
+        int n=8;
+        ArrayList<Edge>[]graph= new ArrayList[n];
+        for(int i=0;i<n;i++) {
+            graph[i]= new ArrayList<>();
+        }
+        
+        addEdge(0, 3, 20,graph);
+        addEdge(0, 1, 10,graph);
+        addEdge(1, 2, 5,graph);
+        addEdge(2, 3, 5,graph);
+        addEdge(4, 3, 2,graph);
+        addEdge(4, 5, 3,graph);
+        addEdge(4, 6, 3,graph);
+        addEdge(5, 6, 3,graph);
+        
+        // display(graph);
+        boolean[]visited= new boolean[10000];
+        // if(hasPath(5, 0, graph, visited)) System.out.println("Yes");
+        // else System.out.println("No");
+        // System.out.println(allPaths(0, 6, graph, visited));
+        // System.out.println(getConnectedComponents(graph, n, visited));
+        HashSet<Integer> set= new HashSet<>();
+        // hamiltonianPathOrCycle(graph, 5, 5, set, "");
+        // if(isBipartite(graph)) System.out.println("true");
+        // else System.out.println("false");
+        // shortestPathInWeight(graph,0);
+        // Prims(graph,0);
+        // System.out.println(isCyclic(graph));
+        int [][]arr={
+            {2,0,1,0,1},
+            {0,1,2,0,0},
+            {1,1,0,1,1},
+            {0,1,1,1,1},
+            {1,2,1,1,0}
+        };
+        redOranges(arr);
+        // BFS(graph, 2);
+    }
+    
+}
